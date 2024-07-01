@@ -17,6 +17,8 @@ const TimeTable: React.FC = () => {
   const startPosition = useRef({ x: 0, y: 0 });
   const scrollPosition = useRef({ x: 0, y: 0 });
 
+  const rafRef = useRef<number | null>(null);
+
   const handleMouseDown = (event: React.MouseEvent) => {
     setIsDragging(true);
     startPosition.current = { x: event.clientX, y: event.clientY };
@@ -45,13 +47,13 @@ const TimeTable: React.FC = () => {
     setIsDragging(false);
   };
 
-  const handleMouseEnter = (
-    event: React.MouseEvent,
-    person: string,
-    date: string,
-    weekday: string,
-    time: string,
-    index: number,
+  const updateTooltipAndHighlight = (
+    event,
+    person,
+    date,
+    weekday,
+    time,
+    index,
   ) => {
     const position = { top: event.clientY + 10, left: event.clientX + 10 };
     const fullDate = new Date(`2024-${date.slice(3, 5)}-${date.slice(0, 2)}`);
@@ -63,6 +65,22 @@ const TimeTable: React.FC = () => {
     const content = `${person}\n${formattedDate}\n${time} ч`;
     setTooltip({ content, visible: true, position });
     setHighlightColumn(index);
+  };
+
+  const handleMouseEnter = (
+    event: React.MouseEvent,
+    person: string,
+    date: string,
+    weekday: string,
+    time: string,
+    index: number,
+  ) => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      updateTooltipAndHighlight(event, person, date, weekday, time, index);
+    });
   };
 
   const handleMouseLeaveTooltip = () => {
@@ -83,20 +101,78 @@ const TimeTable: React.FC = () => {
     );
 
     return (
-      <div className="flex sticky top-0 z-20 bg-white">
-        <div className="sticky left-0 w-40 bg-white p-2"></div>
+      <tr className="sticky top-0 z-20 bg-white">
+        <th className="sticky left-0 bg-white p-2"></th>
         {Object.entries(monthGroups).map(([month, indices], idx) => (
-          <div
+          <th
             key={idx}
-            className={`flex ${idx % 2 === 0 ? "bg-gray-200" : "bg-gray-300"}`}
-            style={{ width: `${indices.length * 5}rem` }}
+            className={`${idx % 2 === 0 ? "bg-gray-200" : "bg-gray-300"}`}
+            colSpan={indices.length}
           >
-            <div className="w-full text-center p-2 font-bold">{month}</div>
-          </div>
+            <div className="w-full text-center p-2 font-normal">{month}</div>
+          </th>
         ))}
-      </div>
+      </tr>
     );
   };
+
+  const renderDateHeader = () => (
+    <tr className="sticky top-[2.5rem] z-10 bg-white">
+      <th className="sticky left-0 bg-gray-200 p-2 min-w-40">Name</th>
+      {dates.map((date, index) => (
+        <th
+          key={index}
+          className={`p-2 w-20  font-normal ${date.isWeekend ? "bg-gray-300" : "bg-gray-100"}`}
+        >
+          <div className="text-base">{date.date}</div>
+          <div className="text-sm">{date.weekday}</div>
+        </th>
+      ))}
+    </tr>
+  );
+
+  const renderTeamTable = (team) => (
+    <table key={team.name} className="mb-4 mt-2 rounded shadow-lg bg-white ">
+      <thead>
+        <tr>
+          <th className="sticky left-0 p-2 font-bold text-xl text-left w-40 ">
+            {team.name}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {team.members.map((person, index) => (
+          <tr key={index}>
+            <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md min-w-40">
+              {person.name}
+            </td>
+            {person.times.map((time, idx) => (
+              <td
+                key={idx}
+                className="bg-white text-base p-2 text-center border min-w-20"
+                style={{
+                  backgroundColor: interpolateColor(parseFloat(time)),
+                }}
+                onMouseEnter={(e) =>
+                  handleMouseEnter(
+                    e,
+                    person.name,
+                    dates[idx].date,
+                    dates[idx].weekday,
+                    time,
+                    idx,
+                  )
+                }
+                onMouseLeave={handleMouseLeaveTooltip}
+              >
+                {time} h
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 
   return (
     <div
@@ -112,73 +188,13 @@ const TimeTable: React.FC = () => {
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <div className="min-w-max relative">
-        {highlightColumn !== null && (
-          <div
-            className="absolute top-0 bottom-0 bg-blue-200 opacity-50 pointer-events-none"
-            style={{
-              left: `${highlightColumn * 5 + 10}rem`,
-              width: "5rem",
-            }}
-          ></div>
-        )}
-        <div className="top-0 z-50">
+      <table className="min-w-max relative">
+        <thead>
           {renderMonthHeader()}
-          <div className="flex sticky top-[2.5rem] z-10 bg-white">
-            <div className="sticky left-0 w-40 bg-gray-200 p-2 font-bold ">
-              Name
-            </div>
-            {dates.map((date, index) => (
-              <div
-                key={index}
-                className={`flex flex-col w-20 p-2 ${date.isWeekend ? "bg-gray-300" : "bg-gray-100"}`}
-              >
-                <div>{date.date}</div>
-                <div className="text-xs">{date.weekday}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        {teams.map((team, teamIdx) => (
-          <div key={teamIdx} className="mb-4 mt-2 rounded shadow-lg bg-white">
-            <div className="flex w-full">
-              <div className="sticky left-0 w-40  p-2 font-bold">
-                {team.name}
-              </div>
-              <div className=""></div>
-            </div>
-            {team.members.map((person, index) => (
-              <div key={index} className="flex">
-                <div className="sticky left-0 w-40 bg-gray-200 p-2 shadow-md">
-                  {person.name}
-                </div>
-                {person.times.map((time, idx) => (
-                  <div
-                    key={idx}
-                    className="w-20 bg-white p-2 border"
-                    style={{
-                      backgroundColor: interpolateColor(parseFloat(time)),
-                    }}
-                    onMouseEnter={(e) =>
-                      handleMouseEnter(
-                        e,
-                        person.name,
-                        dates[idx].date,
-                        dates[idx].weekday,
-                        time,
-                        idx,
-                      )
-                    }
-                    onMouseLeave={handleMouseLeaveTooltip}
-                  >
-                    {time}h
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+          {renderDateHeader()}
+        </thead>
+      </table>
+      {teams.map((team) => renderTeamTable(team))}
     </div>
   );
 };

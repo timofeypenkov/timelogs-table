@@ -10,7 +10,7 @@ export const generateMockData = () => {
     const date = new Date(d);
     const day = date.toLocaleDateString("ru-RU", {
       day: "2-digit",
-      month: "2-digit",
+      // month: "2-digit",
     });
     const month =
       date
