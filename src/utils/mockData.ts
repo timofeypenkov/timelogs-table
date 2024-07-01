@@ -12,7 +12,12 @@ export const generateMockData = () => {
       day: "2-digit",
       month: "2-digit",
     });
-    const month = date.toLocaleDateString("ru-RU", { month: "long" });
+    const month =
+      date
+        .toLocaleDateString("ru-RU", { month: "long" })
+        .charAt(0)
+        .toUpperCase() +
+      date.toLocaleDateString("ru-RU", { month: "long" }).slice(1);
     const weekday = date.toLocaleDateString("ru-RU", { weekday: "short" });
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     dates.push({

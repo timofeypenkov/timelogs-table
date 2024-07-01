@@ -54,7 +54,13 @@ const TimeTable: React.FC = () => {
     index: number,
   ) => {
     const position = { top: event.clientY + 10, left: event.clientX + 10 };
-    const content = `Name: ${person}\nDate: ${date}\nWeekday: ${weekday}\nTime: ${time}h`;
+    const fullDate = new Date(`2024-${date.slice(3, 5)}-${date.slice(0, 2)}`);
+    const formattedDate = fullDate.toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const content = `${person}\n${formattedDate}\n${time} ч`;
     setTooltip({ content, visible: true, position });
     setHighlightColumn(index);
   };
