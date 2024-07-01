@@ -142,7 +142,7 @@ const TimeTable: React.FC = () => {
         <div className="top-0 z-50">
           {renderMonthHeader()}
           <div className="flex sticky top-[2.5rem] z-10 bg-white">
-            <div className="sticky left-0 w-40 bg-gray-200 p-2 font-bold shadow-md">
+            <div className="sticky left-0 w-40 bg-gray-200 p-2 font-bold ">
               Name
             </div>
             {dates.map((date, index) => (
@@ -154,9 +154,9 @@ const TimeTable: React.FC = () => {
           </div>
         </div>
         {teams.map((team, teamIdx) => (
-          <div key={teamIdx} className="mb-4 mt-12 rounded shadow-lg bg-white">
+          <div key={teamIdx} className="mb-4 mt-2 rounded shadow-lg bg-white">
             <div className="flex w-full">
-              <div className="sticky left-0 w-40 bg-gray-200 p-2 font-bold shadow-md">
+              <div className="sticky left-0 w-40  p-2 font-bold">
                 {team.name}
               </div>
               <div className=""></div>
