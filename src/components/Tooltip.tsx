@@ -1,3 +1,4 @@
+// src/components/Tooltip.tsx
 import React from "react";
 
 interface TooltipProps {
@@ -11,7 +12,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, visible, position }) => {
 
   return (
     <div
-      style={{ top: position.top, left: position.left }}
+      style={{ top: position.top, left: position.left, zIndex: 100 }}
       className="fixed bg-gray-700 text-white text-xs rounded p-2 shadow-lg"
     >
       {content}

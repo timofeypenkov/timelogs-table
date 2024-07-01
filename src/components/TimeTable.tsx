@@ -35,6 +35,7 @@ const TimeTable: React.FC = () => {
     position: { top: 0, left: 0 },
   });
   const [isDragging, setIsDragging] = useState(false);
+  const [highlightColumn, setHighlightColumn] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const startPosition = useRef({ x: 0, y: 0 });
   const scrollPosition = useRef({ x: 0, y: 0 });
@@ -48,6 +49,7 @@ const TimeTable: React.FC = () => {
         y: scrollContainerRef.current.scrollTop,
       };
     }
+    event.preventDefault();
   };
 
   const handleMouseMove = (event: React.MouseEvent) => {
@@ -72,14 +74,17 @@ const TimeTable: React.FC = () => {
     date: string,
     weekday: string,
     time: string,
+    index: number,
   ) => {
     const position = { top: event.clientY + 10, left: event.clientX + 10 };
     const content = `Name: ${person}\nDate: ${date}\nWeekday: ${weekday}\nTime: ${time}h`;
     setTooltip({ content, visible: true, position });
+    setHighlightColumn(index);
   };
 
   const handleMouseLeaveTooltip = () => {
     setTooltip({ ...tooltip, visible: false });
+    setHighlightColumn(null);
   };
 
   const renderMonthHeader = () => {
@@ -124,8 +129,17 @@ const TimeTable: React.FC = () => {
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <div className="min-w-max">
-        <div className=" top-0 z-50">
+      <div className="min-w-max relative">
+        {highlightColumn !== null && (
+          <div
+            className="absolute top-0 bottom-0 bg-blue-200 opacity-50 pointer-events-none"
+            style={{
+              left: `${highlightColumn * 5 + 10}rem`,
+              width: "5rem",
+            }}
+          ></div>
+        )}
+        <div className="top-0 z-50">
           {renderMonthHeader()}
           <div className="flex sticky top-[2.5rem] z-10 bg-white">
             <div className="sticky left-0 w-40 bg-gray-200 p-2 font-bold shadow-md">
@@ -166,6 +180,7 @@ const TimeTable: React.FC = () => {
                         dates[idx].date,
                         dates[idx].weekday,
                         time,
+                        idx,
                       )
                     }
                     onMouseLeave={handleMouseLeaveTooltip}
