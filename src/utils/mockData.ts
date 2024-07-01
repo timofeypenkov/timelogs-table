@@ -2,13 +2,12 @@
 export const generateMockData = () => {
   const teams = ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"];
   const names = Array.from({ length: 32 }, (_, i) => `Person ${i + 1}`);
-  const today = new Date();
-  const dates = Array.from({ length: 60 }, (_, i) => {
-    const date = new Date(
-      today.getFullYear(),
-      today.getMonth() + Math.floor(i / 20),
-      (i % 20) + 1,
-    );
+  const startDate = new Date(2024, 0, 1); // 1 января 2024 года
+  const endDate = new Date(2024, 11, 31); // 31 декабря 2024 года
+  const dates = [];
+
+  for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+    const date = new Date(d);
     const day = date.toLocaleDateString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
@@ -16,13 +15,13 @@ export const generateMockData = () => {
     const month = date.toLocaleDateString("ru-RU", { month: "long" });
     const weekday = date.toLocaleDateString("ru-RU", { weekday: "short" });
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    return {
+    dates.push({
       date: day,
       month,
       weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
       isWeekend,
-    };
-  });
+    });
+  }
 
   const teamData = teams.map((team, idx) => ({
     name: team,
