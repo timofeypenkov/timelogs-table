@@ -4,7 +4,12 @@ const generateMockData = () => {
   const dates = [];
   const teams = [];
   const startDate = new Date("2024-01-01");
-  const endDate = new Date("2024-06-31");
+  const endDate = new Date("2024-12-31");
+
+  // Helper function to capitalize the first letter of a string
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
   // Generate dates
   for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -12,10 +17,12 @@ const generateMockData = () => {
     dates.push({
       fullDate: date.toISOString().split("T")[0],
       date: date.getDate().toString().padStart(2, "0"),
-      weekday: date
-        .toLocaleString("ru-RU", { weekday: "short" })
-        .replace(".", ""),
-      month: date.toLocaleString("ru-RU", { month: "long" }),
+      weekday: capitalizeFirstLetter(
+        date.toLocaleString("ru-RU", { weekday: "short" }).replace(".", ""),
+      ),
+      month: capitalizeFirstLetter(
+        date.toLocaleString("ru-RU", { month: "long" }),
+      ),
       isWeekend: date.getDay() === 0 || date.getDay() === 6,
     });
   }
