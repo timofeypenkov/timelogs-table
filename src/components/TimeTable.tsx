@@ -9,9 +9,19 @@ interface TooltipState {
   position: { top: number; left: number };
 }
 
+interface TaskRecord {
+  id: string;
+  project: string;
+  description: string;
+  date: string;
+  time: number;
+}
+
 interface Person {
+  id: string;
   name: string;
-  times: string[];
+  team: string;
+  records: TaskRecord[];
 }
 
 interface Team {
@@ -30,12 +40,45 @@ interface DateInfo {
 const { dates, teams }: { dates: DateInfo[]; teams: Team[] } =
   generateMockData();
 
+const sumTimesByDate = (records: TaskRecord[], date: string) => {
+  return records
+    .filter((record) => record.date === date)
+    .reduce((sum, record) => sum + record.time, 0)
+    .toFixed(2);
+};
+
+const sumTimesByProject = (tasks: TaskRecord[], date: string) => {
+  return tasks
+    .filter((task) => task.date === date)
+    .reduce((sum, task) => sum + task.time, 0)
+    .toFixed(2);
+};
+
+const groupRecordsByProject = (records: TaskRecord[]) => {
+  const groupedByProject = records.reduce(
+    (acc, record) => {
+      if (!acc[record.project]) {
+        acc[record.project] = {};
+      }
+      if (!acc[record.project][record.description]) {
+        acc[record.project][record.description] = [];
+      }
+      acc[record.project][record.description].push(record);
+      return acc;
+    },
+    {} as Record<string, Record<string, TaskRecord[]>>,
+  );
+
+  return groupedByProject;
+};
+
 const TimeTable: React.FC = () => {
   const [tooltip, setTooltip] = useState<TooltipState>({
     content: "",
     visible: false,
     position: { top: 0, left: 0 },
   });
+  const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
 
   const updateTooltip = (
     event: React.MouseEvent<HTMLTableCellElement>,
@@ -67,6 +110,10 @@ const TimeTable: React.FC = () => {
 
   const handleMouseLeaveTooltip = () => {
     setTooltip({ ...tooltip, visible: false });
+  };
+
+  const toggleExpandedPerson = (personId: string) => {
+    setExpandedPerson(expandedPerson === personId ? null : personId);
   };
 
   const renderMonthHeader = () => {
@@ -115,6 +162,61 @@ const TimeTable: React.FC = () => {
     </tr>
   );
 
+  const renderTaskRows = (person: Person) => {
+    const projects = groupRecordsByProject(person.records);
+    return Object.entries(projects).map(([project, tasks]) => (
+      <React.Fragment key={project}>
+        <tr>
+          <td className="sticky left-0 bg-gray-300 text-base p-2 border shadow-md w-40">
+            {project}
+          </td>
+          {dates.map((date, idx) => (
+            <td
+              key={idx}
+              className="bg-white text-base p-2 text-center border min-w-20"
+            >
+              {parseFloat(
+                sumTimesByProject(Object.values(tasks).flat(), date.fullDate),
+              ) > 0 && (
+                <div>
+                  {sumTimesByProject(
+                    Object.values(tasks).flat(),
+                    date.fullDate,
+                  )}{" "}
+                  h
+                </div>
+              )}
+            </td>
+          ))}
+        </tr>
+        {Object.entries(tasks).map(([taskDescription, taskRecords]) => {
+          const aggregatedRecords = dates.map((date) => {
+            const sum = taskRecords
+              .filter((record) => record.date === date.fullDate)
+              .reduce((acc, record) => acc + record.time, 0);
+            return sum.toFixed(2) !== "0.00" ? sum.toFixed(2) + " h" : "";
+          });
+
+          return (
+            <tr key={taskRecords[0].id}>
+              <td className="sticky left-0 bg-gray-100 text-sm p-2 border shadow-md w-40">
+                {taskDescription}
+              </td>
+              {aggregatedRecords.map((record, idx) => (
+                <td
+                  key={idx}
+                  className="bg-white text-base p-2 text-center border min-w-20"
+                >
+                  {record}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
+      </React.Fragment>
+    ));
+  };
+
   const renderTeamTable = (team: Team) => (
     <div
       key={team.name}
@@ -129,33 +231,43 @@ const TimeTable: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {team.members.map((person, index) => (
-            <tr key={index}>
-              <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40">
-                {person.name}
-              </td>
-              {person.times.map((time, idx) => (
+          {team.members.map((person) => (
+            <React.Fragment key={person.id}>
+              <tr>
                 <td
-                  key={idx}
-                  className="bg-white text-base p-2 text-center border min-w-20"
-                  style={{
-                    backgroundColor: interpolateColor(parseFloat(time)),
-                  }}
-                  onMouseEnter={(e) =>
-                    handleMouseEnter(
-                      e,
-                      team.name,
-                      person.name,
-                      dates[idx].fullDate,
-                      time,
-                    )
-                  }
-                  onMouseLeave={handleMouseLeaveTooltip}
+                  className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40 cursor-pointer"
+                  onClick={() => toggleExpandedPerson(person.id)}
                 >
-                  {time} h
+                  {person.name}
                 </td>
-              ))}
-            </tr>
+                {dates.map((date, idx) => (
+                  <td
+                    key={idx}
+                    className="bg-white text-base p-2 text-center border min-w-20"
+                    style={{
+                      backgroundColor: interpolateColor(
+                        parseFloat(
+                          sumTimesByDate(person.records, date.fullDate),
+                        ),
+                      ),
+                    }}
+                    onMouseEnter={(e) =>
+                      handleMouseEnter(
+                        e,
+                        team.name,
+                        person.name,
+                        date.fullDate,
+                        sumTimesByDate(person.records, date.fullDate),
+                      )
+                    }
+                    onMouseLeave={handleMouseLeaveTooltip}
+                  >
+                    {sumTimesByDate(person.records, date.fullDate)} h
+                  </td>
+                ))}
+              </tr>
+              {expandedPerson === person.id && renderTaskRows(person)}
+            </React.Fragment>
           ))}
         </tbody>
       </table>
