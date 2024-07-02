@@ -20,6 +20,7 @@ interface Team {
 }
 
 interface DateInfo {
+  fullDate: string;
   date: string;
   weekday: string;
   month: string;
@@ -74,20 +75,18 @@ const TimeTable: React.FC = () => {
   const updateTooltipAndHighlight = (
     event: React.MouseEvent<HTMLTableCellElement>,
     person: string,
-    date: string,
-    weekday: string,
+    fullDate: string,
     time: string,
     index: number,
   ) => {
     const position = { top: event.clientY + 10, left: event.clientX + 10 };
-    const [day, month] = date.split(".");
-    const fullDate = new Date(`2024-${month}-${day}`);
-    const formattedDate = fullDate.toLocaleDateString("ru-RU", {
+    const dateObj = new Date(fullDate);
+    const formattedDate = dateObj.toLocaleDateString("ru-RU", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
-    const content = `${person}\n${date}\n${time} ч`;
+    const content = `${person}\n${formattedDate}\n${time} ч`;
     setTooltip({ content, visible: true, position });
     setHighlightColumn(index);
   };
@@ -95,8 +94,7 @@ const TimeTable: React.FC = () => {
   const handleMouseEnter = (
     event: React.MouseEvent<HTMLTableCellElement>,
     person: string,
-    date: string,
-    weekday: string,
+    fullDate: string,
     time: string,
     index: number,
   ) => {
@@ -104,7 +102,7 @@ const TimeTable: React.FC = () => {
       cancelAnimationFrame(rafRef.current);
     }
     rafRef.current = requestAnimationFrame(() => {
-      updateTooltipAndHighlight(event, person, date, weekday, time, index);
+      updateTooltipAndHighlight(event, person, fullDate, time, index);
     });
   };
 
@@ -185,8 +183,7 @@ const TimeTable: React.FC = () => {
                   handleMouseEnter(
                     e,
                     person.name,
-                    dates[idx].date,
-                    dates[idx].weekday,
+                    dates[idx].fullDate,
                     time,
                     idx,
                   )
