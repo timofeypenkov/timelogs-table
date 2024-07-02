@@ -1,15 +1,19 @@
 import React, { useState, useMemo } from "react";
-import Tooltip from "./Tooltip";
-import { generateMockData } from "../utils/mockData";
-import { interpolateColor } from "../utils/colorUtils";
+import Tooltip from "../Tooltip";
+import { interpolateColor } from "../../utils/colorUtils";
+import { generateMockData } from "../../utils/mockData";
+import { MonthHeader } from "./Elements/MonthHeader";
+import { DateHeader } from "./Elements/DateHeader";
+import { TaskRows } from "./Elements/TaskRows";
+import { ProjectRows } from "./Elements/ProjectRows";
 
-interface TooltipState {
+export interface TooltipState {
   content: string;
   visible: boolean;
   position: { top: number; left: number };
 }
 
-interface TaskRecord {
+export interface TaskRecord {
   id: string;
   project: string;
   description: string;
@@ -17,19 +21,19 @@ interface TaskRecord {
   time: number;
 }
 
-interface Person {
+export interface Person {
   id: string;
   name: string;
   team: string;
   records: TaskRecord[];
 }
 
-interface Team {
+export interface Team {
   name: string;
   members: Person[];
 }
 
-interface DateInfo {
+export interface DateInfo {
   fullDate: string;
   date: string;
   weekday: string;
@@ -98,10 +102,7 @@ const TimeTable: React.FC = () => {
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
-  const aggregatedData = useMemo(
-    () => prepareAggregatedData(teams, dates),
-    [teams, dates],
-  );
+  const aggregatedData = useMemo(() => prepareAggregatedData(teams, dates), []);
 
   const updateTooltip = (
     event: React.MouseEvent<HTMLTableCellElement>,
@@ -144,104 +145,7 @@ const TimeTable: React.FC = () => {
     setExpandedProject(expandedProject === projectId ? null : projectId);
   };
 
-  const renderMonthHeader = () => {
-    const monthGroups = dates.reduce(
-      (acc, date, index) => {
-        if (!acc[date.month]) {
-          acc[date.month] = [];
-        }
-        acc[date.month].push(index);
-        return acc;
-      },
-      {} as Record<string, number[]>,
-    );
-
-    return (
-      <tr className="sticky top-0 z-20 bg-gray-100">
-        <th className="sticky left-0 bg-gray-100 p-2 w-40"></th>
-        {Object.entries(monthGroups).map(([month, indices], idx) => (
-          <th
-            key={idx}
-            className={`${idx % 2 === 0 ? "bg-gray-200" : "bg-gray-300"}`}
-            colSpan={indices.length}
-          >
-            <div className="w-full text-center p-2 font-normal">{month}</div>
-          </th>
-        ))}
-      </tr>
-    );
-  };
-
-  const renderDateHeader = () => (
-    <tr className="sticky top-[2.5rem] z-10  m-4 ">
-      <th className="sticky left-0 bg-gray-100 p-2 w-40"></th>
-      {dates.map((date, index) => (
-        <th key={index} className={`w-20 font-normal`}>
-          <div className="flex items-center justify-center">
-            <div
-              className={`text-sm mt-4 w-8 h-8 rounded-full p-2 flex items-center justify-center ${date.isWeekend ? "bg-gray-300" : "bg-gray-100"}`}
-            >
-              {date.date}
-            </div>
-          </div>
-          <div className={`text-sm text-gray-400 p-2`}>{date.weekday}</div>
-        </th>
-      ))}
-    </tr>
-  );
-
-  const renderTaskRows = (tasks: Record<string, TaskRecord[]>) => {
-    return Object.entries(tasks).map(([taskDescription, taskRecords]) => {
-      const aggregatedRecords = dates.map((date) => {
-        const sum = taskRecords
-          .filter((record) => record.date === date.fullDate)
-          .reduce((acc, record) => acc + record.time, 0);
-        return sum.toFixed(2) !== "0.00" ? sum.toFixed(2) + " h" : "";
-      });
-
-      return (
-        <tr key={taskRecords[0].id}>
-          <td className="sticky left-0 bg-gray-100 text-sm p-2 border shadow-md w-40">
-            {taskDescription}
-          </td>
-          {aggregatedRecords.map((record, idx) => (
-            <td
-              key={idx}
-              className={`bg-white text-base p-2 text-center border min-w-20`}
-            >
-              {record}
-            </td>
-          ))}
-        </tr>
-      );
-    });
-  };
-
-  const renderProjectRows = (person: Person) => {
-    return person.projects.map((project) => (
-      <React.Fragment key={project.project}>
-        <tr
-          onClick={() => toggleExpandedProject(project.project)}
-          className="cursor-pointer"
-        >
-          <td className="sticky left-0 bg-gray-300 text-base p-2 border shadow-md w-40">
-            {project.project}
-          </td>
-          {project.dailyTotals.map((dailyTotal, idx) => (
-            <td
-              key={idx}
-              className={`bg-gray-300 text-base p-2 text-center border min-w-20`}
-            >
-              {dailyTotal.total}
-            </td>
-          ))}
-        </tr>
-        {expandedProject === project.project && renderTaskRows(project.tasks)}
-      </React.Fragment>
-    ));
-  };
-
-  const renderTeamTable = (team: Team) => (
+  const TeamTable = (team: Team) => (
     <div
       key={team.name}
       className="mb-4 m-4 rounded-lg min-w-max w-full shadow-lg bg-white p-4"
@@ -288,7 +192,13 @@ const TimeTable: React.FC = () => {
                   </td>
                 ))}
               </tr>
-              {expandedPerson === person.id && renderProjectRows(person)}
+              {expandedPerson === person.id &&
+                ProjectRows(
+                  expandedProject,
+                  toggleExpandedProject,
+                  dates,
+                  person,
+                )}
             </React.Fragment>
           ))}
         </tbody>
@@ -303,15 +213,15 @@ const TimeTable: React.FC = () => {
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <div className="mb-4 m-4 rounded-lg min-w-max w-full ">
+      <div className="mb-4 m-4 rounded-lg min-w-max w-full px-4">
         <table className="min-w-max w-full">
           <thead>
-            {renderMonthHeader()}
-            {renderDateHeader()}
+            {MonthHeader(dates)}
+            {DateHeader(dates)}
           </thead>
         </table>
       </div>
-      {aggregatedData.map((team) => renderTeamTable(team))}
+      {aggregatedData.map((team) => TeamTable(team))}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 // src/App.tsx
 import React from "react";
-import TimeTable from "./components/TimeTable";
+import TimeTable from "./components/TimeTable/TimeTable";
 
 const App: React.FC = () => {
   return (
