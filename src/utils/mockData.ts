@@ -4,7 +4,7 @@ const generateMockData = () => {
   const dates = [];
   const teams = [];
   const startDate = new Date("2024-01-01");
-  const endDate = new Date("2024-03-31");
+  const endDate = new Date("2024-06-31");
 
   // Generate dates
   for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {

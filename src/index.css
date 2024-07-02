@@ -14,3 +14,8 @@
 .cursor-grabbing {
   cursor: grabbing;
 }
+
+.bg-warning {
+  background-color: #ffcccc; /* Светло-красный цвет для предупреждения */
+  color: #ff0000; /* Красный цвет для восклицательного знака */
+}

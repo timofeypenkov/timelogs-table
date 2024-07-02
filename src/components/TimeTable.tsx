@@ -41,17 +41,17 @@ const { dates, teams }: { dates: DateInfo[]; teams: Team[] } =
   generateMockData();
 
 const sumTimesByDate = (records: TaskRecord[], date: string) => {
-  return records
+  const total = records
     .filter((record) => record.date === date)
-    .reduce((sum, record) => sum + record.time, 0)
-    .toFixed(2);
+    .reduce((sum, record) => sum + record.time, 0);
+  return total === 0 ? "" : total.toFixed(2);
 };
 
 const sumTimesByProject = (tasks: TaskRecord[], date: string) => {
-  return tasks
+  const total = tasks
     .filter((task) => task.date === date)
-    .reduce((sum, task) => sum + task.time, 0)
-    .toFixed(2);
+    .reduce((sum, task) => sum + task.time, 0);
+  return total === 0 ? "" : total.toFixed(2);
 };
 
 const groupRecordsByProject = (records: TaskRecord[]) => {
@@ -79,6 +79,7 @@ const TimeTable: React.FC = () => {
     position: { top: 0, left: 0 },
   });
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
   const updateTooltip = (
     event: React.MouseEvent<HTMLTableCellElement>,
@@ -114,6 +115,11 @@ const TimeTable: React.FC = () => {
 
   const toggleExpandedPerson = (personId: string) => {
     setExpandedPerson(expandedPerson === personId ? null : personId);
+    setExpandedProject(null); // Collapse all projects when a new person is expanded
+  };
+
+  const toggleExpandedProject = (projectId: string) => {
+    setExpandedProject(expandedProject === projectId ? null : projectId);
   };
 
   const renderMonthHeader = () => {
@@ -162,57 +168,54 @@ const TimeTable: React.FC = () => {
     </tr>
   );
 
-  const renderTaskRows = (person: Person) => {
+  const renderTaskRows = (tasks: Record<string, TaskRecord[]>) => {
+    return Object.entries(tasks).map(([taskDescription, taskRecords]) => {
+      const aggregatedRecords = dates.map((date) => {
+        const sum = taskRecords
+          .filter((record) => record.date === date.fullDate)
+          .reduce((acc, record) => acc + record.time, 0);
+        return sum.toFixed(2) !== "0.00" ? sum.toFixed(2) + " h" : "";
+      });
+
+      return (
+        <tr key={taskRecords[0].id}>
+          <td className="sticky left-0 bg-gray-100 text-sm p-2 border shadow-md w-40">
+            {taskDescription}
+          </td>
+          {aggregatedRecords.map((record, idx) => (
+            <td
+              key={idx}
+              className={`bg-white text-base p-2 text-center border min-w-20`}
+            >
+              {record}
+            </td>
+          ))}
+        </tr>
+      );
+    });
+  };
+
+  const renderProjectRows = (person: Person) => {
     const projects = groupRecordsByProject(person.records);
     return Object.entries(projects).map(([project, tasks]) => (
       <React.Fragment key={project}>
-        <tr>
+        <tr
+          onClick={() => toggleExpandedProject(project)}
+          className="cursor-pointer"
+        >
           <td className="sticky left-0 bg-gray-300 text-base p-2 border shadow-md w-40">
             {project}
           </td>
           {dates.map((date, idx) => (
             <td
               key={idx}
-              className="bg-white text-base p-2 text-center border min-w-20"
+              className={`bg-gray-300 text-base p-2 text-center border min-w-20`}
             >
-              {parseFloat(
-                sumTimesByProject(Object.values(tasks).flat(), date.fullDate),
-              ) > 0 && (
-                <div>
-                  {sumTimesByProject(
-                    Object.values(tasks).flat(),
-                    date.fullDate,
-                  )}{" "}
-                  h
-                </div>
-              )}
+              {sumTimesByProject(Object.values(tasks).flat(), date.fullDate)}
             </td>
           ))}
         </tr>
-        {Object.entries(tasks).map(([taskDescription, taskRecords]) => {
-          const aggregatedRecords = dates.map((date) => {
-            const sum = taskRecords
-              .filter((record) => record.date === date.fullDate)
-              .reduce((acc, record) => acc + record.time, 0);
-            return sum.toFixed(2) !== "0.00" ? sum.toFixed(2) + " h" : "";
-          });
-
-          return (
-            <tr key={taskRecords[0].id}>
-              <td className="sticky left-0 bg-gray-100 text-sm p-2 border shadow-md w-40">
-                {taskDescription}
-              </td>
-              {aggregatedRecords.map((record, idx) => (
-                <td
-                  key={idx}
-                  className="bg-white text-base p-2 text-center border min-w-20"
-                >
-                  {record}
-                </td>
-              ))}
-            </tr>
-          );
-        })}
+        {expandedProject === project && renderTaskRows(tasks)}
       </React.Fragment>
     ));
   };
@@ -233,23 +236,28 @@ const TimeTable: React.FC = () => {
         <tbody>
           {team.members.map((person) => (
             <React.Fragment key={person.id}>
-              <tr>
-                <td
-                  className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40 cursor-pointer"
-                  onClick={() => toggleExpandedPerson(person.id)}
-                >
+              <tr
+                onClick={() => toggleExpandedPerson(person.id)}
+                className="cursor-pointer"
+              >
+                <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40">
                   {person.name}
                 </td>
                 {dates.map((date, idx) => (
                   <td
                     key={idx}
-                    className="bg-white text-base p-2 text-center border min-w-20"
+                    className={`bg-white text-base p-2 text-center border min-w-20 ${sumTimesByDate(person.records, date.fullDate) === "" ? "bg-warning" : ""}`}
                     style={{
-                      backgroundColor: interpolateColor(
-                        parseFloat(
-                          sumTimesByDate(person.records, date.fullDate),
-                        ),
-                      ),
+                      backgroundColor: sumTimesByDate(
+                        person.records,
+                        date.fullDate,
+                      )
+                        ? interpolateColor(
+                            parseFloat(
+                              sumTimesByDate(person.records, date.fullDate),
+                            ),
+                          )
+                        : "",
                     }}
                     onMouseEnter={(e) =>
                       handleMouseEnter(
@@ -262,11 +270,13 @@ const TimeTable: React.FC = () => {
                     }
                     onMouseLeave={handleMouseLeaveTooltip}
                   >
-                    {sumTimesByDate(person.records, date.fullDate)} h
+                    {sumTimesByDate(person.records, date.fullDate) || (
+                      <span>!</span>
+                    )}
                   </td>
                 ))}
               </tr>
-              {expandedPerson === person.id && renderTaskRows(person)}
+              {expandedPerson === person.id && renderProjectRows(person)}
             </React.Fragment>
           ))}
         </tbody>
@@ -281,7 +291,7 @@ const TimeTable: React.FC = () => {
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <div className="mb-4 m-4 rounded-lg min-w-max w-full ">
+      <div className="mb-4 m-4 rounded-lg min-w-max w-full px-4 ">
         <table className="min-w-max w-full">
           <thead>
             {renderMonthHeader()}
