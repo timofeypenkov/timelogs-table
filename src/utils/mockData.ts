@@ -14,8 +14,18 @@ export const generateMockData = () => {
     const dateObj = {
       fullDate: dateString,
       date: dateString.slice(8, 10), // Дата дня
-      weekday: currentDate.toLocaleDateString("ru-RU", { weekday: "short" }),
-      month: currentDate.toLocaleDateString("ru-RU", { month: "long" }),
+      weekday:
+        currentDate
+          .toLocaleDateString("ru-RU", { weekday: "short" })
+          .charAt(0)
+          .toUpperCase() +
+        currentDate.toLocaleDateString("ru-RU", { weekday: "short" }).slice(1),
+      month:
+        currentDate
+          .toLocaleDateString("ru-RU", { month: "long" })
+          .charAt(0)
+          .toUpperCase() +
+        currentDate.toLocaleDateString("ru-RU", { month: "long" }).slice(1),
       isWeekend: currentDate.getDay() === 0 || currentDate.getDay() === 6,
     };
     dates.push(dateObj);

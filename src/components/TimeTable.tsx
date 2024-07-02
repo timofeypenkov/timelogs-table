@@ -74,6 +74,7 @@ const TimeTable: React.FC = () => {
 
   const updateTooltipAndHighlight = (
     event: React.MouseEvent<HTMLTableCellElement>,
+    teamName: string,
     person: string,
     fullDate: string,
     time: string,
@@ -86,13 +87,14 @@ const TimeTable: React.FC = () => {
       month: "long",
       year: "numeric",
     });
-    const content = `${person}\n${formattedDate}\n${time} ч`;
+    const content = `${teamName}\n${person}\n${formattedDate}\n${time} ч`;
     setTooltip({ content, visible: true, position });
     setHighlightColumn(index);
   };
 
   const handleMouseEnter = (
     event: React.MouseEvent<HTMLTableCellElement>,
+    teamName: string,
     person: string,
     fullDate: string,
     time: string,
@@ -102,7 +104,7 @@ const TimeTable: React.FC = () => {
       cancelAnimationFrame(rafRef.current);
     }
     rafRef.current = requestAnimationFrame(() => {
-      updateTooltipAndHighlight(event, person, fullDate, time, index);
+      updateTooltipAndHighlight(event, teamName, person, fullDate, time, index);
     });
   };
 
@@ -182,6 +184,7 @@ const TimeTable: React.FC = () => {
                 onMouseEnter={(e) =>
                   handleMouseEnter(
                     e,
+                    team.name,
                     person.name,
                     dates[idx].fullDate,
                     time,
