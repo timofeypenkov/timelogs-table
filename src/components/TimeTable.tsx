@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import Tooltip from "./Tooltip";
 import { generateMockData } from "../utils/mockData";
 import { interpolateColor } from "../utils/colorUtils";
@@ -36,17 +36,13 @@ const TimeTable: React.FC = () => {
     visible: false,
     position: { top: 0, left: 0 },
   });
-  const [highlightColumn, setHighlightColumn] = useState<number | null>(null);
 
-  const rafRef = useRef<number | null>(null);
-
-  const updateTooltipAndHighlight = (
+  const updateTooltip = (
     event: React.MouseEvent<HTMLTableCellElement>,
     teamName: string,
     person: string,
     fullDate: string,
     time: string,
-    index: number,
   ) => {
     const position = { top: event.clientY + 10, left: event.clientX + 10 };
     const dateObj = new Date(fullDate);
@@ -57,7 +53,6 @@ const TimeTable: React.FC = () => {
     });
     const content = `${teamName}\n${person}\n${formattedDate}\n${time} ч`;
     setTooltip({ content, visible: true, position });
-    setHighlightColumn(index);
   };
 
   const handleMouseEnter = (
@@ -66,19 +61,12 @@ const TimeTable: React.FC = () => {
     person: string,
     fullDate: string,
     time: string,
-    index: number,
   ) => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current);
-    }
-    rafRef.current = requestAnimationFrame(() => {
-      updateTooltipAndHighlight(event, teamName, person, fullDate, time, index);
-    });
+    updateTooltip(event, teamName, person, fullDate, time);
   };
 
   const handleMouseLeaveTooltip = () => {
     setTooltip({ ...tooltip, visible: false });
-    setHighlightColumn(null);
   };
 
   const renderMonthHeader = () => {
@@ -94,8 +82,8 @@ const TimeTable: React.FC = () => {
     );
 
     return (
-      <tr className="sticky top-0 z-20 bg-white">
-        <th className="sticky left-0 bg-white p-2"></th>
+      <tr className="sticky top-0 z-20 bg-gray-100">
+        <th className="sticky left-0 bg-gray-100 p-2 w-40"></th>
         {Object.entries(monthGroups).map(([month, indices], idx) => (
           <th
             key={idx}
@@ -110,10 +98,10 @@ const TimeTable: React.FC = () => {
   };
 
   const renderDateHeader = () => (
-    <tr className="sticky top-[2.5rem] z-10 bg-white m-4 ">
-      <th className="sticky left-0 bg-white p-2 min-w-40"></th>
+    <tr className="sticky top-[2.5rem] z-10  m-4 ">
+      <th className="sticky left-0 bg-gray-100 p-2 w-40"></th>
       {dates.map((date, index) => (
-        <th key={index} className={`w-20 font-normal `}>
+        <th key={index} className={`w-20 font-normal`}>
           <div className="flex items-center justify-center">
             <div
               className={`text-sm mt-4 w-8 h-8 rounded-full p-2 flex items-center justify-center ${date.isWeekend ? "bg-gray-300" : "bg-gray-100"}`}
@@ -143,7 +131,7 @@ const TimeTable: React.FC = () => {
         <tbody>
           {team.members.map((person, index) => (
             <tr key={index}>
-              <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md min-w-40">
+              <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40">
                 {person.name}
               </td>
               {person.times.map((time, idx) => (
@@ -160,7 +148,6 @@ const TimeTable: React.FC = () => {
                       person.name,
                       dates[idx].fullDate,
                       time,
-                      idx,
                     )
                   }
                   onMouseLeave={handleMouseLeaveTooltip}
@@ -182,7 +169,7 @@ const TimeTable: React.FC = () => {
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <div className="mb-4 m-4 rounded-lg min-w-max w-full shadow-lg bg-white p-4">
+      <div className="mb-4 m-4 rounded-lg min-w-max w-full ">
         <table className="min-w-max w-full">
           <thead>
             {renderMonthHeader()}
