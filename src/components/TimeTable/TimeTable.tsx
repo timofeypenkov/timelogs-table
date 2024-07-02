@@ -5,6 +5,7 @@ import { MonthHeader } from "./Elements/MonthHeader";
 import { DateHeader } from "./Elements/DateHeader";
 import { DateInfo, TaskRecord, Team, TooltipState } from "./TimeTable.types";
 import { TeamTable } from "./Elements/TeamTable";
+import { FaUser } from "react-icons/fa";
 
 const { dates, teams }: { dates: DateInfo[]; teams: Team[] } =
   generateMockData();
@@ -66,6 +67,7 @@ const TimeTable: React.FC = () => {
   });
   const [expandedPerson, setExpandedPerson] = useState<string | null>(null);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [showDisabled, setShowDisabled] = useState(true);
 
   const aggregatedData = useMemo(() => prepareAggregatedData(teams, dates), []);
 
@@ -110,6 +112,13 @@ const TimeTable: React.FC = () => {
     setExpandedProject(expandedProject === projectId ? null : projectId);
   };
 
+  const filteredData = showDisabled
+    ? aggregatedData
+    : aggregatedData.map((team) => ({
+        ...team,
+        members: team.members.filter((person) => person.status !== "disabled"),
+      }));
+
   return (
     <div className="relative overflow-auto smooth-scroll select-none bg-gray-100">
       <Tooltip
@@ -117,15 +126,17 @@ const TimeTable: React.FC = () => {
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <div className="mb-4 m-4 rounded-lg min-w-max w-full px-4">
-        <table className="min-w-max w-full">
-          <thead>
-            {MonthHeader(dates)}
-            {DateHeader(dates)}
-          </thead>
-        </table>
+      <div className="flex items-center mb-4 m-4">
+        <div className="ml-4 rounded-lg min-w-max w-full ">
+          <table className="min-w-max w-full">
+            <thead>
+              {MonthHeader(showDisabled, setShowDisabled, dates)}
+              {DateHeader(dates)}
+            </thead>
+          </table>
+        </div>
       </div>
-      {aggregatedData.map((team) =>
+      {filteredData.map((team) =>
         TeamTable(
           toggleExpandedPerson,
           handleMouseEnter,

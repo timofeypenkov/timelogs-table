@@ -1,5 +1,5 @@
 // src/utils/mockData.ts
-//
+
 import { v4 as uuidv4 } from "uuid";
 
 const generateMockData = () => {
@@ -36,10 +36,12 @@ const generateMockData = () => {
       members: [],
     };
     for (let j = 0; j < 8; j++) {
+      const status = (i * 8 + j + 1) % 5 === 0 ? "disabled" : "active";
       const member = {
         id: uuidv4(),
         name: `Person ${i * 8 + j + 1}`,
         team: team.name,
+        status: status,
         records: [],
       };
       dates.forEach((date) => {
@@ -49,7 +51,6 @@ const generateMockData = () => {
             const project = `Project ${k + 1}`;
             const numTasks = Math.floor(Math.random() * 3) + 1;
             for (let m = 0; m < numTasks; m++) {
-              const taskId = uuidv4();
               const taskDescription = `Task ${m + 1}`;
               const taskDurationDays = Math.floor(Math.random() * 5) + 1;
               for (let t = 0; t < taskDurationDays; t++) {

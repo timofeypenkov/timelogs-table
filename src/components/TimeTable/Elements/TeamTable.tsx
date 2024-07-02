@@ -2,6 +2,7 @@ import React from "react";
 import { DateInfo, Team } from "../TimeTable.types";
 import { interpolateColor } from "../../../utils/colorUtils";
 import { ProjectRows } from "./ProjectRows";
+import { FaTimesCircle } from "react-icons/fa";
 
 export const TeamTable = (
   toggleExpandedPerson: (id: string) => void,
@@ -30,10 +31,13 @@ export const TeamTable = (
           <React.Fragment key={person.id}>
             <tr
               onClick={() => toggleExpandedPerson(person.id)}
-              className="cursor-pointer"
+              className="cursor-pointer transition-transform duration-300 ease-in-out"
             >
-              <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40">
+              <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md w-40 flex items-center justify-between">
                 {person.name}
+                {person.status === "disabled" && (
+                  <FaTimesCircle className="text-red-500 ml-2" />
+                )}
               </td>
               {person.dailyTotals.map((dailyTotal, idx) => (
                 <td
@@ -59,13 +63,18 @@ export const TeamTable = (
                 </td>
               ))}
             </tr>
-            {expandedPerson === person.id &&
-              ProjectRows(
-                expandedProject,
-                toggleExpandedProject,
-                dates,
-                person,
-              )}
+            {expandedPerson === person.id && (
+              <tr className="transition-max-height duration-500 ease-in-out max-h-0 overflow-hidden">
+                <td colSpan={dates.length + 1} className="p-0">
+                  {ProjectRows(
+                    expandedProject,
+                    toggleExpandedProject,
+                    dates,
+                    person,
+                  )}
+                </td>
+              </tr>
+            )}
           </React.Fragment>
         ))}
       </tbody>

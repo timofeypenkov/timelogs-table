@@ -1,4 +1,4 @@
-// src/colorUtils.ts
+// src/utils/colorUtils.ts
 export const interpolateColor = (value: number): string => {
   const red = [173, 216, 230]; // Light blue
   const white = [255, 255, 255]; // White

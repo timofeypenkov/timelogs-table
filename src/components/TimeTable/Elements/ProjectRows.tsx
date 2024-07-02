@@ -12,7 +12,7 @@ export const ProjectRows = (
     <React.Fragment key={project.project}>
       <tr
         onClick={() => toggleExpandedProject(project.project)}
-        className="cursor-pointer"
+        className="cursor-pointer transition-transform duration-300 ease-in-out"
       >
         <td className="sticky left-0 bg-gray-300 text-base p-2 border shadow-md w-40">
           {project.project}
@@ -26,7 +26,13 @@ export const ProjectRows = (
           </td>
         ))}
       </tr>
-      {expandedProject === project.project && TaskRows(dates, project.tasks)}
+      {expandedProject === project.project && (
+        <tr className="transition-max-height duration-500 ease-in-out max-h-0 overflow-hidden">
+          <td colSpan={dates.length + 1} className="p-0">
+            {TaskRows(dates, project.tasks)}
+          </td>
+        </tr>
+      )}
     </React.Fragment>
   ));
 };

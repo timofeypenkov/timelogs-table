@@ -6,6 +6,13 @@ export default {
       fontSize: {
         base: "14px", // Устанавливаем базовый размер шрифта
       },
+      transitionProperty: {
+        "max-height": "max-height",
+      },
+      maxHeight: {
+        0: "0",
+        full: "100%",
+      },
     },
   },
   plugins: [],
