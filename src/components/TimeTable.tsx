@@ -3,10 +3,34 @@ import Tooltip from "./Tooltip";
 import { generateMockData } from "../utils/mockData";
 import { interpolateColor } from "../utils/colorUtils";
 
-const { dates, teams } = generateMockData();
+interface TooltipState {
+  content: string;
+  visible: boolean;
+  position: { top: number; left: number };
+}
+
+interface Person {
+  name: string;
+  times: string[];
+}
+
+interface Team {
+  name: string;
+  members: Person[];
+}
+
+interface DateInfo {
+  date: string;
+  weekday: string;
+  month: string;
+  isWeekend: boolean;
+}
+
+const { dates, teams }: { dates: DateInfo[]; teams: Team[] } =
+  generateMockData();
 
 const TimeTable: React.FC = () => {
-  const [tooltip, setTooltip] = useState({
+  const [tooltip, setTooltip] = useState<TooltipState>({
     content: "",
     visible: false,
     position: { top: 0, left: 0 },
@@ -19,7 +43,7 @@ const TimeTable: React.FC = () => {
 
   const rafRef = useRef<number | null>(null);
 
-  const handleMouseDown = (event: React.MouseEvent) => {
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
     startPosition.current = { x: event.clientX, y: event.clientY };
     if (scrollContainerRef.current) {
@@ -31,7 +55,7 @@ const TimeTable: React.FC = () => {
     event.preventDefault();
   };
 
-  const handleMouseMove = (event: React.MouseEvent) => {
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !scrollContainerRef.current) return;
     const dx = event.clientX - startPosition.current.x;
     const dy = event.clientY - startPosition.current.y;
@@ -48,27 +72,28 @@ const TimeTable: React.FC = () => {
   };
 
   const updateTooltipAndHighlight = (
-    event,
-    person,
-    date,
-    weekday,
-    time,
-    index,
+    event: React.MouseEvent<HTMLTableCellElement>,
+    person: string,
+    date: string,
+    weekday: string,
+    time: string,
+    index: number,
   ) => {
     const position = { top: event.clientY + 10, left: event.clientX + 10 };
-    const fullDate = new Date(`2024-${date.slice(3, 5)}-${date.slice(0, 2)}`);
+    const [day, month] = date.split(".");
+    const fullDate = new Date(`2024-${month}-${day}`);
     const formattedDate = fullDate.toLocaleDateString("ru-RU", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
-    const content = `${person}\n${formattedDate}\n${time} ч`;
+    const content = `${person}\n${date}\n${time} ч`;
     setTooltip({ content, visible: true, position });
     setHighlightColumn(index);
   };
 
   const handleMouseEnter = (
-    event: React.MouseEvent,
+    event: React.MouseEvent<HTMLTableCellElement>,
     person: string,
     date: string,
     weekday: string,
@@ -118,21 +143,24 @@ const TimeTable: React.FC = () => {
 
   const renderDateHeader = () => (
     <tr className="sticky top-[2.5rem] z-10 bg-white">
-      <th className="sticky left-0 bg-gray-200 p-2 min-w-40">Name</th>
+      <th className="sticky left-0 bg-white p-2 min-w-40"></th>
       {dates.map((date, index) => (
-        <th
-          key={index}
-          className={`p-2 w-20  font-normal ${date.isWeekend ? "bg-gray-300" : "bg-gray-100"}`}
-        >
-          <div className="text-base">{date.date}</div>
-          <div className="text-sm">{date.weekday}</div>
+        <th key={index} className={`w-20 font-normal `}>
+          <div className="flex items-center justify-center">
+            <div
+              className={`text-sm mt-4 w-8 h-8 rounded-full p-2 flex items-center justify-center ${date.isWeekend ? "bg-gray-300" : "bg-gray-100"}`}
+            >
+              {date.date}
+            </div>
+          </div>
+          <div className={`text-sm text-gray-400 p-2`}>{date.weekday}</div>
         </th>
       ))}
     </tr>
   );
 
-  const renderTeamTable = (team) => (
-    <table key={team.name} className="mb-4 mt-2 rounded shadow-lg bg-white ">
+  const renderTeamTable = (team: Team) => (
+    <table key={team.name} className="mb-4 mt-0 rounded shadow-lg bg-white ">
       <thead>
         <tr>
           <th className="sticky left-0 p-2 font-bold text-xl text-left w-40 ">

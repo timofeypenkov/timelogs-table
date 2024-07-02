@@ -1,6 +1,6 @@
 // src/utils/mockData.ts
 export const generateMockData = () => {
-  const teams = ["Team Alpha", "Team Beta", "Team Gamma", "Team Delta"];
+  const teams = ["In / Out", "Assets", "Houdini", "Motion"];
   const names = Array.from({ length: 32 }, (_, i) => `Person ${i + 1}`);
   const startDate = new Date(2024, 0, 1); // 1 января 2024 года
   const endDate = new Date(2024, 11, 31); // 31 декабря 2024 года
