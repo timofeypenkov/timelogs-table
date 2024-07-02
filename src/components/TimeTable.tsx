@@ -110,7 +110,7 @@ const TimeTable: React.FC = () => {
   };
 
   const renderDateHeader = () => (
-    <tr className="sticky top-[2.5rem] z-10 bg-white">
+    <tr className="sticky top-[2.5rem] z-10 bg-white m-4 ">
       <th className="sticky left-0 bg-white p-2 min-w-40"></th>
       {dates.map((date, index) => (
         <th key={index} className={`w-20 font-normal `}>
@@ -128,58 +128,69 @@ const TimeTable: React.FC = () => {
   );
 
   const renderTeamTable = (team: Team) => (
-    <tbody key={team.name}>
-      <tr>
-        <td className="sticky left-0 p-2 font-bold text-xl text-left w-40 bg-white">
-          {team.name}
-        </td>
-      </tr>
-      {team.members.map((person, index) => (
-        <tr key={index}>
-          <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md min-w-40">
-            {person.name}
-          </td>
-          {person.times.map((time, idx) => (
-            <td
-              key={idx}
-              className="bg-white text-base p-2 text-center border min-w-20"
-              style={{
-                backgroundColor: interpolateColor(parseFloat(time)),
-              }}
-              onMouseEnter={(e) =>
-                handleMouseEnter(
-                  e,
-                  team.name,
-                  person.name,
-                  dates[idx].fullDate,
-                  time,
-                  idx,
-                )
-              }
-              onMouseLeave={handleMouseLeaveTooltip}
-            >
-              {time} h
-            </td>
+    <div
+      key={team.name}
+      className="mb-4 m-4 rounded-lg min-w-max w-full shadow-lg bg-white p-4"
+    >
+      <table className="min-w-max w-full">
+        <thead>
+          <tr>
+            <th className="sticky left-0 pb-2 font-bold text-xl text-left w-40 bg-white">
+              {team.name}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {team.members.map((person, index) => (
+            <tr key={index}>
+              <td className="sticky left-0 bg-gray-200 text-base p-2 border shadow-md min-w-40">
+                {person.name}
+              </td>
+              {person.times.map((time, idx) => (
+                <td
+                  key={idx}
+                  className="bg-white text-base p-2 text-center border min-w-20"
+                  style={{
+                    backgroundColor: interpolateColor(parseFloat(time)),
+                  }}
+                  onMouseEnter={(e) =>
+                    handleMouseEnter(
+                      e,
+                      team.name,
+                      person.name,
+                      dates[idx].fullDate,
+                      time,
+                      idx,
+                    )
+                  }
+                  onMouseLeave={handleMouseLeaveTooltip}
+                >
+                  {time} h
+                </td>
+              ))}
+            </tr>
           ))}
-        </tr>
-      ))}
-    </tbody>
+        </tbody>
+      </table>
+    </div>
   );
 
   return (
-    <div className="relative overflow-auto smooth-scroll select-none">
+    <div className="relative overflow-auto smooth-scroll select-none bg-gray-100">
       <Tooltip
         content={tooltip.content}
         visible={tooltip.visible}
         position={tooltip.position}
       />
-      <table className="min-w-max relative">
-        <thead>
-          {renderMonthHeader()}
-          {renderDateHeader()}
-        </thead>
-        {teams.map((team) => renderTeamTable(team))}
-      </table>
+      <div className="mb-4 m-4 rounded-lg min-w-max w-full shadow-lg bg-white p-4">
+        <table className="min-w-max w-full">
+          <thead>
+            {renderMonthHeader()}
+            {renderDateHeader()}
+          </thead>
+        </table>
+      </div>
+      {teams.map((team) => renderTeamTable(team))}
     </div>
   );
 };
