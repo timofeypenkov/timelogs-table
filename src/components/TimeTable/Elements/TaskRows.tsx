@@ -1,4 +1,4 @@
-import { DateInfo, TaskRecord } from "../TimeTable";
+import { DateInfo, TaskRecord } from "../TimeTable.types";
 
 export const TaskRows = (
   dates: DateInfo[],

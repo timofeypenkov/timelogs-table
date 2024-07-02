@@ -1,5 +1,5 @@
 import React from "react";
-import { DateInfo, Person } from "../TimeTable";
+import { DateInfo, Person } from "../TimeTable.types";
 import { TaskRows } from "./TaskRows";
 
 export const ProjectRows = (
@@ -17,7 +17,7 @@ export const ProjectRows = (
         <td className="sticky left-0 bg-gray-300 text-base p-2 border shadow-md w-40">
           {project.project}
         </td>
-        {project.dailyTotals.map((dailyTotal, idx) => (
+        {project.dailyTotals.map((dailyTotal, idx: number) => (
           <td
             key={idx}
             className={`bg-gray-300 text-base p-2 text-center border min-w-20`}

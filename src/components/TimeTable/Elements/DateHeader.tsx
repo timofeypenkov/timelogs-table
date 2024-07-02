@@ -1,4 +1,4 @@
-import { DateInfo } from "../TimeTable";
+import { DateInfo } from "../TimeTable.types";
 
 export const DateHeader = (dates: DateInfo[]) => (
   <tr className="sticky top-[2.5rem] z-10  m-4 ">

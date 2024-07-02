@@ -1,4 +1,4 @@
-import { DateInfo } from "../TimeTable";
+import { DateInfo } from "../TimeTable.types";
 
 export const MonthHeader = (dates: DateInfo[]) => {
   const monthGroups = dates.reduce(
